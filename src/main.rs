@@ -8,6 +8,9 @@ use std::{
 mod enums{
     pub mod write_mode;
 }
+mod utils{
+    pub mod save;
+}
 mod macros;
 mod model{ pub mod system_model;
 pub mod character_model;

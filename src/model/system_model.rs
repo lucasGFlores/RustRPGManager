@@ -1,4 +1,5 @@
 use crate::enums::write_mode::WriteMode;
+use crate::utils::save::save_file_in_own_directory;
 use serde::{Deserialize, Serialize};
 use serde_json::{self, Value};
 use std::{
@@ -6,6 +7,7 @@ use std::{
     io::Write,
     path::PathBuf,
 };
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SystemModel {
     pub name: String,               //name of the system
@@ -27,24 +29,12 @@ impl SystemModel {
         let path: PathBuf = ["systems", &format!("{}.json", name)].iter().collect();
         SystemModel { name, path, keys }
     }
-    pub fn save(&self, option: WriteMode) -> () {
-        File::open(&self.path).is_ok();
-        let mut file = match option {
-            WriteMode::Truncate => OpenOptions::new()
-                .create(true)
-                .write(true)
-                .truncate(true)
-                .open(&self.path)
-                .expect("Error opening file"),
-            WriteMode::Append => OpenOptions::new()
-                .create(true)
-                .write(true)
-                .append(true)
-                .open(&self.path)
-                .expect("Error opening file"),
-        };
-        file.write_all(serde_json::to_string_pretty(self).unwrap().as_bytes())
-            .expect("Error writing file");
+    pub fn save(&self, option: Option<WriteMode>) -> () {
+        save_file_in_own_directory(
+            serde_json::to_string_pretty(self).unwrap(),
+            &self.path,
+            option,
+        );
     }
     pub fn load_keys(path: &PathBuf) -> Result<Vec<(String, Value)>, std::io::ErrorKind> {
         //make a matrix of keys and their types

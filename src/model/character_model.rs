@@ -3,7 +3,7 @@ use std::{collections::HashMap, path::PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::save_file_in_own_directory;
+use crate::{enums::write_mode::WriteMode, utils::save::save_file_in_own_directory};
 
 use super::system_model::SystemModel;
 
@@ -23,22 +23,26 @@ impl Character {
             status: None,
         }
     }
-    
-  pub fn save(&self) -> () {
-        let path: PathBuf = [&self.rpg_name, &format!("{}.json", &self.name)].iter().collect();
-       save_file_in_own_directory!(&path, self,true);
+
+    pub fn save(&self, option: Option<WriteMode>) -> () {
+        let path: PathBuf = [&self.rpg_name, &format!("{}.json", &self.name)]
+            .iter()
+            .collect();
+        save_file_in_own_directory(serde_json::to_string_pretty(self).unwrap(), &path, option);
     }
-   fn set_status(&mut self) -> () {
-      self.system.keys.iter().map(|(key, value)| {
+    fn set_status(&mut self) -> () {
+        self.system.keys.iter().map(|(key, value)| {
             let mut status: HashMap<String, Value> = HashMap::new();
             status.insert(key.to_string(), value.clone());
             status
         }); // Convert the map iterator to a vector
     }
-    fn get_status_pattern(&self) -> Vec<(String,String)> {
-        self.system.keys.iter().map(|(key, value)| {
-            (key.to_string(), value.name_of_value())
-        }).collect()
+    fn get_status_pattern(&self) -> Vec<(String, String)> {
+        self.system
+            .keys
+            .iter()
+            .map(|(key, value)| (key.to_string(), value.name_of_value()))
+            .collect()
     }
 }
 
