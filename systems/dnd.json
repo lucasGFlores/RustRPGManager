@@ -1,0 +1,13 @@
+{
+  "name": "dnd",
+  "path": "systems\\dnd.json",
+  "keys": [
+    ["força", 0],
+    ["destreza", 0],
+    ["constituição", 0],
+    ["inteligência", 0],
+    ["sabedoria", 0],
+    ["carisma", 0],
+    ["viadagem", true]
+  ]
+}
