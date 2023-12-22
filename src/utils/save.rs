@@ -1,5 +1,5 @@
 use std::{
-    fs::{File, OpenOptions},
+    fs::{File, OpenOptions, create_dir},
     io::Write,
     path::PathBuf,
 };
@@ -12,7 +12,7 @@ pub fn save_file_in_own_directory(json_value: String, path: &PathBuf, option: Op
         } else {
             WriteMode::Append
         };
-    File::open(&path).is_ok();
+    if File::open(&path).is_ok(){
     let mut file = match option {
         WriteMode::Truncate => OpenOptions::new()
             .create(true)
@@ -29,4 +29,10 @@ pub fn save_file_in_own_directory(json_value: String, path: &PathBuf, option: Op
     };
     file.write_all(json_value.as_bytes())
         .expect("Error writing file");
+} else {
+    create_dir(path.parent().unwrap()).unwrap();
+    File::create(path).unwrap();
+    save_file_in_own_directory(json_value, path, Some(option));
+
+}
 }

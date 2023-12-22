@@ -4,7 +4,7 @@ use std::{
     collections::HashMap,
     fs::{self, File, OpenOptions},
     io::{stdin, stdout, Write},
-    path::{self, PathBuf},
+    path::{self, PathBuf}, ops::Add,
 };
 mod enums {
     pub mod write_mode;
@@ -30,26 +30,10 @@ fn main() {
             ("inteligência".to_string(), Value::Number(Number::from(0))),
             ("sabedoria".to_string(), Value::Number(Number::from(0))),
             ("carisma".to_string(), Value::Number(Number::from(0))),
+            ("viadagem".to_string(), Value::Bool(false)),
         ],
     );
-    let character = Character::new(system, "dnd".to_string(), "gandalf".to_string());
-    // print!("{:?}",character.get_status_pattern());
-    // setar os status do user
-    let mut values: String = String::new();
-    let mut stats: HashMap<String, Value> = HashMap::new();
-    for stats in character.get_stats_pattern().iter() {
-        print!("\ncoloque o valor para {} ({})\n", stats.0, stats.1);
-        match stdin().read_line(&mut values) {
-            Ok(n) => {
-                print!("\n");
-                
-            } //make mitigation value type error
-            Err(_) => {
-                print!("have problem in write the value of {}", stats.0);
-                break;
-            }
-        }
-    }
-
-    //    stdin()
+    let mut character = Character::new(system, "dnd".to_string(), "gandalf".to_string());
+    character.set_all_stats();
+    character.save(None);
 }

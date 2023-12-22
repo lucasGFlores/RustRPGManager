@@ -1,19 +1,20 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, io::stdin, path::PathBuf};
 
 use clap::builder::Str;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Number, Value};
 
 use crate::{enums::write_mode::WriteMode, utils::save::save_file_in_own_directory};
 
 use super::system_model::SystemModel;
+use crate::model::character_model::dataTypes::{DBool, DNumber, DString};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Character {
     system: SystemModel,
     rpg_name: String,
     name: String,
-    status: Option<HashMap<String, Value>>,
+    status: Option<Vec<Value>>,
 }
 impl Character {
     pub fn new(system: SystemModel, rpg_name: String, name: String) -> Character {
@@ -31,23 +32,91 @@ impl Character {
             .collect();
         save_file_in_own_directory(serde_json::to_string_pretty(self).unwrap(), &path, option);
     }
-    fn set_stats(&mut self,values : String) -> () {
-        
-        self.system.keys.iter().map(|(key, value)| {
-            let mut status: HashMap<String, Value> = HashMap::new();
-            status.insert(key.to_string(), value.clone());
-            status
-        }); // Convert the map iterator to a vector
+    pub fn set_all_stats(&mut self) -> () {
+        let mut values: String = String::new();
+        let mut stats: Vec<Value> = Vec::new();
+        for stat in self.get_stats_pattern().iter() {
+            print!(
+                "\ncoloque o valor para {} ({})\n",
+                stat.0,
+                stat.1.value_of()
+            );
+            loop {
+                match stdin().read_line(&mut values) {
+                    Ok(_n) => {
+                        // print!("\n");
+                        values = format!("{}", values.trim());
+                        // print!("\n\n{}\n",values.trim());
+                        let last_value = values.clone();
+                        values = String::new();
+                        // print!("\nsexo \n");
+                        match &stat.1 {
+                            Value::Number(n) => match last_value.parse::<u32>() {
+                                Ok(value) => {
+                                    let value = Value::Number(Number::from(value));
+                                    stats.push(value);
+                                    break;
+                                }
+                                Err(_) => {
+                                    print!("valor invalido, coloque um numero\n")
+                                }
+                            },
+                            Value::Bool(_b) => {
+                                //atualizar escolhas linguagem...
+                                match last_value.to_lowercase().as_str() {
+                                    "sim" | "s" | "yes" | "y" => {
+                                        let value = Value::Bool(true);
+                                        stats.push(value);
+                                        break;
+                                    }
+                                    "não" | "n" | "no" => {
+                                        let value = Value::Bool(false);
+                                        stats.push(value);
+                                        break;
+                                    }
+                                    _ => {
+                                        print!("valor invalido, coloque sim ou não\n");
+                                    }
+                                }
+                            }
+                            Value::Null => stats.push(Value::Null),
+                            Value::String(_) => todo!(),
+                            Value::Array(_) => todo!(),
+                            Value::Object(_) => todo!(),
+                        }
+                    }
+                    Err(_) => {
+                        print!("have problem in write the value of {}", stat.0);
+                        break;
+                    }
+                }
+            }
+        }
     }
-    pub fn get_stats_pattern(&self) -> Vec<(String, String)> {
+    fn get_stats_pattern(&self) -> Vec<(String, Value)> {
         self.system
             .keys
             .iter()
-            .map(|(key, value)| (key.to_string(), value.value_of()))
+            .map(|(key, value)| (key.to_string(), value.clone()))
             .collect()
+    }
+    fn get_stats(&self, value: dataTypes) -> dataTypes {
+        match value {
+            DString(string) => {
+                let value = self.system.keys.get(&string).unwrap().clone();
+            }
+            DNumber(number) => {
+                let value = Value::Number(Number::from(number));
+                dataTypes::DNumber(number)
+            }
+        }
     }
 }
 
+enum dataTypes {
+    DString(String),
+    DNumber(u32),
+}
 trait ValueOf {
     fn value_of(&self) -> String;
 }
