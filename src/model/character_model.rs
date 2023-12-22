@@ -1,5 +1,6 @@
 use std::{collections::HashMap, path::PathBuf};
 
+use clap::builder::Str;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -30,28 +31,29 @@ impl Character {
             .collect();
         save_file_in_own_directory(serde_json::to_string_pretty(self).unwrap(), &path, option);
     }
-    fn set_status(&mut self) -> () {
+    fn set_stats(&mut self,values : String) -> () {
+        
         self.system.keys.iter().map(|(key, value)| {
             let mut status: HashMap<String, Value> = HashMap::new();
             status.insert(key.to_string(), value.clone());
             status
         }); // Convert the map iterator to a vector
     }
-    fn get_status_pattern(&self) -> Vec<(String, String)> {
+    pub fn get_stats_pattern(&self) -> Vec<(String, String)> {
         self.system
             .keys
             .iter()
-            .map(|(key, value)| (key.to_string(), value.name_of_value()))
+            .map(|(key, value)| (key.to_string(), value.value_of()))
             .collect()
     }
 }
 
-trait NameOfValue {
-    fn name_of_value(&self) -> String;
+trait ValueOf {
+    fn value_of(&self) -> String;
 }
 
-impl NameOfValue for Value {
-    fn name_of_value(&self) -> String {
+impl ValueOf for Value {
+    fn value_of(&self) -> String {
         match self {
             Value::String(string) => "texto".to_string(),
             Value::Number(Number) => "numero".to_string(),
